@@ -1,0 +1,5 @@
+build/
+dist/
+target/
+nb-configuration.xml
+/nbproject/
