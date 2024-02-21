@@ -25,11 +25,6 @@ public enum EventCode {
 	EF_UDATA(7);
     
 	
-//			USER_DEFAULT        = 0
-//			USER_ENROLLER       = 2
-//			USER_MANAGER        = 6
-//			USER_ADMIN          = 14
-
     private final int code;
 
     private EventCode(int code) {

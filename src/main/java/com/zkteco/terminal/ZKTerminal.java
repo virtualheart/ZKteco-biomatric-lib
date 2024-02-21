@@ -181,7 +181,7 @@ public class ZKTerminal {
         return new ZKCommandReply(replyCode, sessionId, replyId, payloads);
     }
 
-    // Get Realtime Att log (Not Working)
+    // Set Realtime
     public ZKCommandReply enableRealtime(EventCode ... events) throws IOException {
         int allEvents = 0;
         for (EventCode event : events) {
@@ -195,7 +195,7 @@ public class ZKTerminal {
             index--;
             hex = hex.substring(2);
         }
-        System.out.println(HexUtils.bytesToHex(eventReg));
+//        System.out.println(HexUtils.bytesToHex(eventReg));
         int[] toSend = ZKCommand.getPacket(CommandCodeEnum.CMD_REG_EVENT, sessionId, replyNo, eventReg);
         byte[] buf = new byte[toSend.length];
         index = 0;
@@ -203,7 +203,7 @@ public class ZKTerminal {
             buf[index++] = (byte) byteToSend;
         }
         DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-//        socket.setSoTimeout(10000);
+//        socket.setSoTimeout(40000);
         socket.send(packet);
         int[] response = readResponse();
         CommandReplyCodeEnum replyCode = CommandReplyCodeEnum.decode(response[0] + (response[1] * 0x100));
@@ -213,49 +213,35 @@ public class ZKTerminal {
         return new ZKCommandReply(replyCode, sessionId, replyId, payloads);
     }
     
-    
-//    public ZKCommandReply enableRealtime(EventCode... events) throws IOException {
-//        int allEvents = 0;
-//        
-//        for (EventCode event : events) {
-//            allEvents |= event.getCode();
-//        }
-//        
-//        // Convert to 8-character hex string
-//        String hex = String.format("%08X", allEvents);
-//        
-//        // Convert hex string to int array
-//        int[] eventReg = new int[4];
-//        
-//        for (int i = 0; i < hex.length(); i += 2) {
-//            eventReg[i / 2] = Integer.parseInt(hex.substring(i, i + 2), 16);
-//        }
-//        
-//        // Print for debugging
-//        System.out.println(Arrays.toString(eventReg));
-//        
-//        // Prepare and send the packet
-//        int[] toSend = ZKCommand.getPacket(CommandCodeEnum.CMD_REG_EVENT, sessionId, replyNo, eventReg);
-//        byte[] buf = new byte[toSend.length];
-//        
-//        for (int i = 0; i < toSend.length; i++) {
-//            buf[i] = (byte) toSend[i];
-//        }
-//        
-//        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
-////        socket.setSoTimeout(10000);
-//        socket.send(packet);
-//        
-//        // Read response from the device
-//        int[] response = readResponse();
-//        
-//        // Decode response
-//        CommandReplyCodeEnum replyCode = CommandReplyCodeEnum.decode(response[0] + (response[1] * 0x100));
-//        int replyId = response[6] + (response[7] * 0x100);
-//        int[] payloads = Arrays.copyOfRange(response, 8, response.length);
-//        
-//        return new ZKCommandReply(replyCode, sessionId, replyId, payloads);
-//    }
+    // Get realtime Attendance log But other method not able to access(Address already in use)
+    public ZKCommandReply enableRealtimeAtt() throws IOException, ParseException {
+        int allEvents = EventCode.EF_ATTLOG.getCode();
+        String hex = StringUtils.leftPad(Integer.toHexString(allEvents), 8, "0");
+        int[] eventReg = new int[4];
+        int index = 3;
+        while (hex.length() > 0) {
+            eventReg[index] = (int) Long.parseLong(hex.substring(0, 2), 16);
+            index--;
+            hex = hex.substring(2);
+        }
+//        System.out.println(HexUtils.bytesToHex(eventReg));
+        int[] toSend = ZKCommand.getPacket(CommandCodeEnum.CMD_REG_EVENT, sessionId, replyNo, eventReg);
+        byte[] buf = new byte[toSend.length];
+        index = 0;
+        for (int byteToSend : toSend) {
+            buf[index++] = (byte) byteToSend;
+        }
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+        socket.send(packet);
+        int[] response = readResponse();
+        CommandReplyCodeEnum replyCode = CommandReplyCodeEnum.decode(response[0] + (response[1] * 0x100));
+        
+        int replyId = response[6] + (response[7] * 0x100);
+        int[] payloads = new int[response.length - 8];
+        System.arraycopy(response, 8, payloads, 0, payloads.length);
+        return new ZKCommandReply(replyCode, sessionId, replyId, payloads);
+    }
+
 
     // Devices Power down
     public ZKCommandReply Poweroff() throws IOException, ParseException {
@@ -349,6 +335,57 @@ public class ZKTerminal {
         return attendanceRecords;
     }
 
+
+    public List<AttendanceRecord> getAttendanceRecordsForDateRange(String startTime, String endTime) throws IOException, ParseException {
+        int[] toSend = ZKCommand.getPacket(CommandCodeEnum.CMD_ATTLOG_RRQ, sessionId, replyNo, null);
+        byte[] buf = new byte[toSend.length];
+        int index = 0;
+
+        for (int byteToSend : toSend) {
+            buf[index++] = (byte) byteToSend;
+        }
+
+        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);
+        socket.send(packet);
+        replyNo++;
+        int[] response = readResponse();
+        CommandReplyCodeEnum replyCode = CommandReplyCodeEnum.decode(response[0] + (response[1] * 0x100));
+        List<AttendanceRecord> attendanceRecords = new ArrayList<>();
+
+        if (replyCode == CommandReplyCodeEnum.CMD_PREPARE_DATA) {
+            boolean first = true;
+            int lastDataRead;
+
+            do {
+                int[] readData = readResponse();
+                lastDataRead = readData.length;
+                String readPacket = HexUtils.bytesToHex(readData);
+                String attendanceHex = readPacket.substring(first ? 24 : 16);
+                List<AttendanceRecord> records = processAttendanceHex(attendanceHex);
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date startDate = dateFormat.parse(startTime);
+                Date endDate = dateFormat.parse(endTime);
+                
+                for (AttendanceRecord record : records) {
+                	Date recordDate = record.getRecordTime(); 
+                    if (recordDate.after(startDate) && recordDate.before(endDate)) {
+                        attendanceRecords.add(record);
+                    }
+                }
+
+                first = false;
+            } while (lastDataRead == 1032);
+        } else {
+            System.out.println(response.length);
+            String attendanceHex = HexUtils.bytesToHex(response).substring(24);
+            List<AttendanceRecord> records = processAttendanceHex(attendanceHex);
+            attendanceRecords.addAll(records);
+        }
+
+        return attendanceRecords;
+    }
+    
     // Helper method to process attendance hex string
     private List<AttendanceRecord> processAttendanceHex(String attendanceHex) throws ParseException {
         List<AttendanceRecord> records = new ArrayList<>();

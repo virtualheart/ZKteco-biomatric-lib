@@ -6,6 +6,7 @@ import java.text.ParseException;
 import java.util.List;
 
 import com.zkteco.Enum.OnOffenum;
+import com.zkteco.command.events.EventCode;
 import com.zkteco.commands.AttendanceRecord;
 import com.zkteco.commands.SmsInfo;
 import com.zkteco.commands.UserInfo;
@@ -32,14 +33,14 @@ public class Test {
       ZKCommandReply reply = terminal.connect();
       reply = terminal.connectAuth(0);
       reply = terminal.disableDevice();
-
-      reply = terminal.enrollUser(1,3,"1");
-
+      
+      System.out.println(reply.getCode());
+      reply = terminal.enableDevice();
       
       System.out.println(reply.getCode());
 
-      reply = terminal.enableDevice();
-      System.out.println(reply.getCode());
+
+    
 
 
 //    SmsInfo smsinfo = terminal.getYourSmsList(3);
@@ -83,8 +84,24 @@ public class Test {
 //                } catch (IOException e) {
 //                    e.printStackTrace(); // Handle exceptions appropriately
 //                }              
-////                
-        
+//                
+      
+//      try {
+//          List<AttendanceRecord> attendanceRecord = terminal.getAttendanceRecordsForDateRange("2024-02-21 00:00:00", "2024-02-21 23:59:00");
+//          
+//        // Access and print user information
+//        for (AttendanceRecord attendance : attendanceRecord) {
+//              System.out.println("User ID: " + attendance.getUserID());
+//              System.out.println("User SN: " + attendance.getUserSN());            
+//              System.out.println("Verify State: " + attendance.getVerifyState());
+//              System.out.println("Verify Type: " + attendance.getVerifyType());
+//              System.out.println("Record Time: " + attendance.getRecordTime());
+//              System.out.println("------------------------");
+//        }
+//    } catch (IOException e) {
+//        e.printStackTrace(); // Handle exceptions appropriately
+//    }   
+      
 //        ZKTecoHttpServer xk =new ZKTecoHttpServer(8000);
 //        
 //        terminal.getYourSmsList(01);	
