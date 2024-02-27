@@ -31,17 +31,17 @@ public class Test {
     public static void main(String[] args) throws Exception {
       ZKTerminal terminal = new ZKTerminal("192.168.1.205", 4370);
       ZKCommandReply reply = terminal.connect();
-      reply = terminal.connectAuth(0);
+      reply = terminal.connectAuth(100);
       reply = terminal.disableDevice();
-      
+
       System.out.println(reply.getCode());
-      reply = terminal.enableDevice();
+      
+      terminal.createBackup(); 
       
       System.out.println(reply.getCode());
 
 
     
-
 
 //    SmsInfo smsinfo = terminal.getYourSmsList(3);
 

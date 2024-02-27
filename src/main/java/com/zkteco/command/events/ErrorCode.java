@@ -96,7 +96,7 @@ public enum ErrorCode {
     FILE_READ_FAILURE(4985, "File read failure"),
     FILE_WRITE_FAILURE(4984, "File write failure"),
     FAILED_TO_CALCULATE_HASH_VALUE(4983, "Failed to calculate the hash value"),
-    FAILED_TO_ALLOCATE_MEMORY(-4982, "Failed to allocate memory");
+    FAILED_TO_ALLOCATE_MEMORY(4982, "Failed to allocate memory");
     
     private final int code;
     private final String errorMessage;
