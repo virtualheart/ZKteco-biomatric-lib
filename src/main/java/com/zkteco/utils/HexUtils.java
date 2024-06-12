@@ -2,6 +2,7 @@ package com.zkteco.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +106,16 @@ public class HexUtils {
                  calendar.get(Calendar.MINUTE)) * 60 +
                 calendar.get(Calendar.SECOND));
     }
-    
+
+    public static long convertToSeconds() {
+        LocalDateTime t = LocalDateTime.now();
+        long d = (((t.getYear() % 100) * 12 * 31 + ((t.getMonthValue() - 1) * 31) + t.getDayOfMonth() - 1) *
+                (24 * 60 * 60) + (t.getHour() * 60 + t.getMinute()) * 60 + t.getSecond());
+
+        return d;
+    }
+
+
     public static String hexToString(String hex) {
         StringBuilder output = new StringBuilder();
         for (int i = 0; i < hex.length(); i += 2) {

@@ -41,6 +41,6 @@ public class SmsInfo {
 	public String getContent() {
 		return content;
 	}
-    
-    
+
+
 }

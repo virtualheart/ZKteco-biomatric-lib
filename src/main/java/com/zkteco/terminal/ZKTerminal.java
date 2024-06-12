@@ -19,6 +19,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.FileWriter;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -2464,6 +2468,66 @@ public class ZKTerminal {
         return new ZKCommandReply(replyCode, sessionId, replyId, payloads);
     }
         
+
+    // Method to create JSON backup
+    public void createBackup() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        try (FileWriter writer = new FileWriter("device_backup.json")) {
+            Map<String, Object> deviceInfoMap = new HashMap<>();
+//            deviceInfoMap.put("attendanceRecords", getAttendanceRecords());
+            deviceInfoMap.put("isOnlyRFMachine", IsOnlyRFMachine());
+            deviceInfoMap.put("firmwareVersion", getFirmwareVersion());
+            deviceInfoMap.put("productTime", getProductTime());
+            deviceInfoMap.put("deviceName", getDeviceName());
+            deviceInfoMap.put("pin2Width", getPIN2Width());
+            deviceInfoMap.put("attendanceRecords", getAttendanceRecords());
+            deviceInfoMap.put("isOnlyRFMachine", IsOnlyRFMachine());
+            deviceInfoMap.put("firmwareVersion", getFirmwareVersion());
+            deviceInfoMap.put("productTime", getProductTime());
+            deviceInfoMap.put("deviceName", getDeviceName());
+            deviceInfoMap.put("pin2Width", getPIN2Width());
+            deviceInfoMap.put("showState", getShowState());
+            deviceInfoMap.put("deviceIP", getDeviceIP());
+            deviceInfoMap.put("devicePort", getDevicePORT());
+            deviceInfoMap.put("commKey", getCommKey());
+            deviceInfoMap.put("deviceId", getDeviceId());
+            deviceInfoMap.put("isDHCP", iSDHCP());
+            deviceInfoMap.put("dns", getDNS());
+            deviceInfoMap.put("enableProxyServer", isEnableProxyServer());
+            deviceInfoMap.put("proxyServerIP", getProxyServerIP());
+            deviceInfoMap.put("proxyServerPort", getProxyServerPort());
+            deviceInfoMap.put("daylightSavingTime", isDaylightSavingTime());
+            deviceInfoMap.put("language", getLanguage());
+            deviceInfoMap.put("lockPowerKey", isLockPowerKey());
+            deviceInfoMap.put("voiceOn", isVoiceOn());
+            deviceInfoMap.put("platform", getPlatform());
+            deviceInfoMap.put("serialNumber", getSerialNumber());
+            deviceInfoMap.put("mac", getMAC());
+            deviceInfoMap.put("faceVersion", getFaceVersion());
+            deviceInfoMap.put("fpVersion", getFPVersion());
+            deviceInfoMap.put("oemVendor", getOEMVendor());
+//            deviceInfoMap.put("allUsers", getAllUsers());
+            deviceInfoMap.put("workCode", getWorkCode());
+            deviceInfoMap.put("deviceStatus", getDeviceStatus());
+            deviceInfoMap.put("state", getState());
+//            deviceInfoMap.put("deviceTime", getDeviceTime());
+//            List<SmsInfo> smsInfo = null;
+//            int i = 1;
+//            while (smsInfo == null && i <= 10) { // You can adjust the loop condition as needed
+//                smsInfo = getSms(i);
+//                i++;
+//            }
+//            deviceInfoMap.put("smsInfo", smsInfo);
+            objectMapper.writeValue(writer, deviceInfoMap);
+            System.out.println("Device information backup created successfully.");
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+            System.out.println("Error creating device information backup.");
+        }
+    }
+
     // Read response 
     public int[] readResponse() throws IOException {
         byte[] buf = new byte[1000000];

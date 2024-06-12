@@ -4,11 +4,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 import com.zkteco.Enum.CommandCodeEnum;
-import com.zkteco.command.events.EventCode;
 import com.zkteco.utils.SecurityUtils;
 
 public class ZKCommand {
-
     public final static int[] PACKET_START = {0x50, 0x50, 0x82, 0x7d};
 
     public static int[] getPacket(CommandCodeEnum commandCode, int sessionId, int replyNumber, int[] data) {
